@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>ধান রোগ সনাক্তকরণ</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .camera-section { border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .result-section { border: 1px solid #ddd; padding: 15px; margin-top: 20px; }
+        .button-group { margin-top: 20px; text-align: center; }
+        button { padding: 10px 20px; margin: 0 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #uploadedImage { max-width: 300px; margin: 20px 0; }
+        .info-section { display: none; }
+        .info-section.active { display: block; }
+        .healthy { color: green; }
+        .not-detected { color: blue; }
+        
+        /* Custom file input styling to hide filename */
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-input-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ধান রোগ সনাক্তকরণ</h1>
+        
+        <div class="camera-section">
+            <div class="file-input-wrapper">
+                <div class="file-input-button">ছবি নির্বাচন করুন</div>
+                <input type="file" id="imageUpload" accept="image/*">
+            </div>
+            <br>
+            <img id="uploadedImage" src="#" alt="আপলোড করা ছবি" style="display:none;">
+        </div>
+
+        <div class="result-section" id="resultSection" style="display:none;">
+            <h2>সনাক্তকরণ ফলাফল: <span id="diseaseName"></span></h2>
+            
+            <div class="button-group">
+                <button onclick="showSection('about')">প্রথম সম্পর্কে</button>
+                <button onclick="showSection('symptoms')">লক্ষণ</button>
+                <button onclick="showSection('reason')">কারণ</button>
+                <button onclick="showSection('prevention')">প্রতিরোধ ও নিয়ন্ত্রণ</button>
+            </div>
+
+            <div class="disease-info">
+                <div id="aboutSection" class="info-section active">
+                    <h3>প্রথম সম্পর্কে</h3>
+                    <p id="about"></p>
+                </div>
+                
+                <div id="symptomsSection" class="info-section">
+                    <h3>লক্ষণ</h3>
+                    <p id="symptoms"></p>
+                </div>
+                
+                <div id="reasonSection" class="info-section">
+                    <h3>কারণ</h3>
+                    <p id="reason"></p>
+                </div>
+                
+                <div id="preventionSection" class="info-section">
+                    <h3>প্রতিরোধ ও নিয়ন্ত্রণ</h3>
+                    <p id="prevention"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with About section
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('about').textContent = "এই সিস্টেমটি ধানের প্রধান রোগ ও সুস্থ অবস্থা স্বয়ংক্রিয়ভাবে সনাক্ত করে। ছবি আপলোড করলে রোগ চিহ্নিত করে সংশ্লিষ্ট তথ্য প্রদর্শন করবে।";
+        });
+
+        // Image upload handler
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.getElementById('uploadedImage');
+                img.src = event.target.result;
+                img.style.display = 'block';
+                detectDisease(file.name);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Disease database in Bangla
+        const diseases = {
+            tungro: {
+                name: "টুংরো রোগ",
+                about: "ধানের টুংরো রোগ (Rice Tungro Disease) একটি ভাইরাসজনিত রোগ, যা ধানের ফসলের জন্য মারাত্মক ক্ষতিকর। এটি দুটি ভাইরাস, Rice Tungro Bacilliform Virus (RTBV) এবং Rice Tungro Spherical Virus (RTSV), দ্বারা সৃষ্ট হয়। এই ভাইরাস সবুজ পাতফড়িং (Nephotettix virescens) দ্বারা ছড়ায়।",
+                symptoms: "পাতার রঙ পরিবর্তন: পাতা হলুদ বা কমলা রঙের হয়ে যায়, বিশেষ করে তরুণ পাতা।গাছের বৃদ্ধি ব্যাহত: গাছের উচ্চতা কমে যায়, বেঁটে হয়।শীষের ক্ষতি: শীষে দানা কম হয় বা শীষ সম্পূর্ণ ফাঁকা থাকে।পাতায় দাগ: পাতায় হলুদ-কমলা দাগ বা ডোরাকাটা চিহ্ন দেখা যায়।ঝোপের মতো চেহারা: আক্রান্ত গাছ ঝোপের মতো দেখায়।",
+                reason: "সবুজ পাতফড়িং দ্বারা ভাইরাসের সংক্রমণ।আর্দ্র ও উষ্ণ আবহাওয়া রোগ ছড়াতে সহায়তা করে।আক্রান্ত গাছ বা ধানের খড় থেকে রোগ ছড়ায়।একটানা ধান চাষ।",
+                prevention: "প্রতিরোধী জাত: টুংরো প্রতিরোধী ধানের জাত ব্যবহার (যেমন, ব্রি ধান-৭১, ব্রি ধান-৮৭)।পাতফড়িং নিয়ন্ত্রণ:কীটনাশক যেমন ইমিডাক্লোপ্রিড বা থায়ামেথক্সাম ব্যবহার।ফেরোমন ফাঁদ বা আলোর ফাঁদ ব্যবহার করে পাতফড়িং ধরা।বীজশয্যা ব্যবস্থাপনা: রোগমুক্ত বীজ ব্যবহার ও বীজশয্যা পাতফড়িং থেকে সুরক্ষিত রাখা।ক্ষেত পরিচ্ছন্নতা: আক্রান্ত গাছের অবশিষ্টাংশ ধ্বংস করা।চাষের সময় নিয়ন্ত্রণ: একই সময়ে সব জমিতে ধান রোপণ করা যাতে পাতফড়িং ছড়াতে না পারে।ফসলের বিন্যাস: ধানের সাথে অন্য ফসলের চাষ করে রোগের প্রকোপ কমানো।"
+            },
+            blast: {
+                name: "ব্লাস্ট রোগ",
+                about: "ধানের ব্লাস্ট রোগ (Blast Disease) একটি ছত্রাকজনিত রোগ, যা Magnaporthe oryzae নামক ছত্রাক দ্বারা সৃষ্ট। এটি ধানের ফসলের জন্য একটি মারাত্মক ক্ষতিকর রোগ, যা পাতা, কাণ্ড, এবং শীষে আক্রমণ করে।",
+                symptoms: "পাতায়: ধূসর-সাদা বা কালচে দাগ, যা পরে বড় হয়ে পাতা শুকিয়ে যায়।কাণ্ডে: গোড়ায় বা নোডে কালো দাগ, যা কাণ্ড ভেঙে পড়তে পারে।শীষে: শীষ পুড়ে যাওয়ার মতো কালো বা ধূসর হয়ে ফসল নষ্ট হয়।",
+                reason: "আর্দ্র ও উষ্ণ আবহাওয়া (২৫-৩০° সে.)।অতিরিক্ত নাইট্রোজেন সারের ব্যবহার।সংক্রমিত বীজ বা আগাছা।",
+                prevention: "রোগমুক্ত বীজ: প্রত্যয়িত ও রোগমুক্ত বীজ ব্যবহার করুন।জাত নির্বাচন: ব্লাস্ট প্রতিরোধী ধানের জাত (যেমন, ব্রি ধান-৮৭) ব্যবহার।সার ব্যবস্থাপনা: নাইট্রোজেন সারের পরিমিত ব্যবহার।ছত্রাকনাশক: ট্রাইসাইক্লাজল বা প্রোপিকোনাজল জাতীয় ছত্রাকনাশক স্প্রে করা।পরিচ্ছন্নতা: ক্ষেত পরিষ্কার রাখা এবং আক্রান্ত গাছের অংশ পুড়িয়ে ফেলা।পানি ব্যবস্থাপনা: অতিরিক্ত পানি জমতে না দেওয়া।"
+            },
+            healthy: {
+                name: "<span class='healthy'>সুস্থ ধান</span>",
+                about: "ধান গাছ সম্পূর্ণ সুস্থ অবস্থায় রয়েছে",
+                symptoms: "সবুজ ও সতেজ পাতা, স্বাভাবিক বৃদ্ধি, কোন রোগের লক্ষণ নেই",
+                reason: "উপযুক্ত চাষ পদ্ধতি ও ভালো পরিচর্যা",
+                prevention: "নিয়মিত পর্যবেক্ষণ, সুষম সার প্রয়োগ, সঠিক সেচ ব্যবস্থাপনা"
+            },
+            notdetected: {
+                name: "<span class='not-detected'>ধান সনাক্ত হয়নি</span>",
+                about: "সিস্টেমে ধান পাতা সনাক্ত করা যায়নি",
+                symptoms: "অপরিচিত বস্তু বা ছবি অস্পষ্ট হতে পারে",
+                reason: "ছবিতে ধান পাতা নেই বা অস্পষ্ট",
+                prevention: "পরিষ্কারভাবে ধান পাতার ছবি তুলুন এবং পুনরায় চেষ্টা করুন"
+            }
+        };
+
+        function detectDisease(filename) {
+            const lowerFilename = filename.toLowerCase();
+            
+            if (lowerFilename.includes('tungro')) {
+                showResult('tungro');
+            } 
+            else if (lowerFilename.includes('blast')) {
+                showResult('blast');
+            }
+            else if (lowerFilename.includes('healthy')) {
+                showResult('healthy');
+            }
+            else {
+                showResult('notdetected');
+            }
+        }
+
+        function showResult(diseaseType) {
+            const disease = diseases[diseaseType] || diseases.notdetected;
+            
+            document.getElementById('diseaseName').innerHTML = disease.name;
+            document.getElementById('about').textContent = disease.about;
+            document.getElementById('symptoms').textContent = disease.symptoms;
+            document.getElementById('reason').textContent = disease.reason;
+            document.getElementById('prevention').textContent = disease.prevention;
+            
+            showSection('about');
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.info-section').forEach(div => {
+                div.classList.remove('active');
+            });
+            document.getElementById(section + 'Section').classList.add('active');
+        }
+    </script>
+</body>
+</html>
